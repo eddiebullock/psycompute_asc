@@ -87,7 +87,8 @@ class AssessmentAnalyzer:
             save_path: Optional path to save the plots
         """
         # Set up the plotting style
-        plt.style.use('seaborn')
+        sns.set_style("whitegrid")
+        sns.set_context("notebook", font_scale=1.2)
         
         # Create figure with subplots
         n_subscales = len(self.subscales.get(assessment_type, []))

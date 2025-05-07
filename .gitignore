@@ -78,4 +78,7 @@ logs/
 data/raw/*
 data/processed/*
 !data/raw/.gitkeep
-!data/processed/.gitkeep 
+!data/processed/.gitkeep
+
+# Project specific
+notes.txt 

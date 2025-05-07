@@ -1,33 +1,27 @@
 """
 Test script for the autism screening assessment pipeline.
-Demonstrates the complete pipeline using synthetic test data.
+Demonstrates the complete pipeline using processed data.
 """
 
 import sys
 from pathlib import Path
 
 # Add the src directory to the Python path
-sys.path.append(str(Path(__file__).parent.parent))
+project_root = Path(__file__).parent.parent
+sys.path.append(str(project_root))
 
-from src.data.test_data_generator import TestDataGenerator
 from src.data.assessment_processor import AssessmentProcessor
 from src.data.validation import DataValidator
 from src.data.statistical_analysis import AssessmentAnalyzer
 
-def test_pipeline(assessment_type: str, n_samples: int = 200):
+def test_pipeline(assessment_type: str):
     """
     Test the complete pipeline for a specific assessment type.
     
     Args:
         assessment_type: Type of assessment to test ('AQ', 'SQ', or 'EQ')
-        n_samples: Number of samples to generate
     """
     print(f"\nTesting pipeline for {assessment_type}...")
-    
-    # Generate test data
-    generator = TestDataGenerator()
-    df = generator.generate_dataset(assessment_type, n_samples=n_samples)
-    generator.save_dataset(df, assessment_type)
     
     # Initialize pipeline components
     processor = AssessmentProcessor()
@@ -36,7 +30,8 @@ def test_pipeline(assessment_type: str, n_samples: int = 200):
     
     # Test data loading and validation
     print("\n1. Testing data loading and validation...")
-    df_loaded = processor.load_data(f'data/raw/{assessment_type.lower()}_data.csv', assessment_type)
+    data_path = project_root / 'data' / 'processed' / f'{assessment_type.lower()}_data.csv'
+    df_loaded = processor.load_data(str(data_path), assessment_type)
     validation_result = validator.validate_dataset(df_loaded, assessment_type)
     
     print(f"Validation status: {'Valid' if validation_result.is_valid else 'Invalid'}")
@@ -68,24 +63,27 @@ def test_pipeline(assessment_type: str, n_samples: int = 200):
     print(f"Skewness: {distribution_stats['total_score']['skewness']:.2f}")
     print(f"Kurtosis: {distribution_stats['total_score']['kurtosis']:.2f}")
     
-    # Test group comparison
-    print("\n5. Testing group comparison...")
-    comparison_stats = analyzer.compare_groups(df_scored, assessment_type, 'group')
-    print("\nGroup Comparison Statistics:")
-    for key, value in comparison_stats['total_score'].items():
-        print(f"{key}: {value:.4f}")
+    # Test group comparison only if group column exists
+    if 'group' in df_scored.columns:
+        print("\n5. Testing group comparison...")
+        comparison_stats = analyzer.compare_groups(df_scored, assessment_type, 'group')
+        print("\nGroup Comparison Statistics:")
+        for key, value in comparison_stats['total_score'].items():
+            print(f"{key}: {value:.4f}")
+    else:
+        print("\n5. Skipping group comparison (no group column found)")
     
     # Generate plots
     print("\n6. Generating distribution plots...")
-    analyzer.plot_distributions(df_scored, assessment_type, 
-                              f'data/processed/{assessment_type.lower()}_distributions.png')
-    print(f"Plots saved to data/processed/{assessment_type.lower()}_distributions.png")
+    plot_path = project_root / 'data' / 'processed' / f'{assessment_type.lower()}_distributions.png'
+    analyzer.plot_distributions(df_scored, assessment_type, str(plot_path))
+    print(f"Plots saved to {plot_path}")
 
 def main():
     """Run pipeline tests for all assessment types."""
     # Create necessary directories
-    Path('data/raw').mkdir(parents=True, exist_ok=True)
-    Path('data/processed').mkdir(parents=True, exist_ok=True)
+    processed_dir = project_root / 'data' / 'processed'
+    processed_dir.mkdir(parents=True, exist_ok=True)
     
     # Test each assessment type
     for assessment_type in ['AQ', 'SQ', 'EQ']:
