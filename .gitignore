@@ -1,31 +1,20 @@
-# Python
+# Python virtual environment
+venv/
+env/
+.env/
+.venv/
+
+# Python cache files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
+
+# Distribution / packaging
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+build/
 *.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual Environment
-venv/
-ENV/
-env/
-
-# IDE
+# IDE specific files
 .idea/
 .vscode/
 *.swp
@@ -33,13 +22,25 @@ env/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-*.ipynb
 
-# Distribution / packaging
+# Environment variables
+.env
+
+# Data files (if they contain sensitive information)
+data/raw/
+data/processed/
+
+# Logs
+*.log
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Python
+*.so
 .Python
-build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -49,8 +50,6 @@ parts/
 sdist/
 var/
 wheels/
-*.egg-info/
-.installed.cfg
 *.egg
 
 # Unit test / coverage reports
@@ -65,20 +64,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Logs
-*.log
-logs/
-
 # Local development settings
-.env
 .env.local
 .env.*.local
-
-# Data files
-data/raw/*
-data/processed/*
-!data/raw/.gitkeep
-!data/processed/.gitkeep
 
 # Project specific
 notes.txt 

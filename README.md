@@ -1,86 +1,65 @@
-# Autism Screening ML Project
+# Autism Screening Assessment Pipeline
 
-This project implements machine learning models and computational approaches for analyzing autism screening questionnaires and behavioral measures.
+A data processing and analysis pipeline for autism screening assessments (AQ, SQ, EQ).
 
-## Project Overview
+## Setup
 
-The project consists of several key components:
-
-### Core Data Processing Pipeline
-- Ingestion and preprocessing of standard autism assessments (AQ, SQ, EQ)
-- Data validation and quality control mechanisms
-- Statistical analysis of assessment distributions
-
-### Functional Classification Models
-- Multiple ML models (logistic regression, decision trees, SVMs)
-- Comprehensive evaluation metrics
-- Performance comparison against clinical diagnosis
-
-### Feature Analysis Tools
-- Feature importance visualization
-- Correlation analysis
-- Interactive feature relationship exploration
-
-### Dimensional Analysis
-- Dimensionality reduction (PCA, t-SNE)
-- Subtype clustering visualization
-- Interactive symptom space exploration
-
-### Accessible Interface
-- API endpoints for prediction and analysis
-- Web dashboard for data visualization
-- User authentication system
-
-## Project Structure
-
-```
-psycompute_asc/
-├── data/                   # Data storage
-│   ├── raw/               # Raw assessment data
-│   └── processed/         # Processed datasets
-├── src/                   # Source code
-│   ├── data/             # Data processing modules
-│   ├── models/           # ML model implementations
-│   ├── features/         # Feature analysis tools
-│   ├── visualization/    # Visualization modules
-│   └── api/              # API endpoints
-├── notebooks/            # Jupyter notebooks for analysis
-├── tests/               # Unit tests
-├── config/              # Configuration files
-└── docs/               # Documentation
-```
-
-## Setup and Installation
-
-1. Clone the repository:
+1. Create and activate a virtual environment:
 ```bash
-git clone [repository-url]
-cd psycompute_asc
-```
-
-2. Create a virtual environment:
-```bash
+# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+.\venv\Scripts\activate
 ```
 
-3. Install dependencies:
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Usage
 
-[To be added as the project develops]
+1. Run the data processing pipeline:
+```bash
+python src/data/pipeline.py
+```
 
-## Contributing
+2. View the interactive dashboard:
+```bash
+streamlit run src/visualization/dashboard.py
+```
 
-[To be added]
+## Project Structure
+
+```
+bulldev/
+├── data/
+│   ├── raw/           # Original data files
+│   └── processed/     # Processed data and visualizations
+├── src/
+│   ├── data/
+│   │   ├── generation/    # Data generation code
+│   │   ├── processing/    # Data processing code
+│   │   ├── validation/    # Data validation code
+│   │   ├── analysis/      # Analysis and visualization code
+│   │   └── pipeline.py    # Main pipeline script
+│   └── visualization/     # Dashboard code
+├── tests/               # Unit tests
+├── requirements.txt     # Project dependencies
+└── README.md           # This file
+```
+
+## Development
+
+- All code should be in the `src` directory
+- Tests should be in the `tests` directory
+- Data files should be in the `data` directory
+- Use the virtual environment for all development work
 
 ## License
 
-[To be added]
-
-## Contact
-
-[To be added] 
+[Your chosen license] 
