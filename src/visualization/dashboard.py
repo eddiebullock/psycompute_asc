@@ -19,7 +19,7 @@ from src.data.analysis.statistical_analyzer import AssessmentAnalyzer
 def load_data(assessment_type: str) -> pd.DataFrame:
     """Load processed assessment data and calculate total score."""
     processor = AssessmentProcessor()
-    data_path = project_root / 'data' / 'processed' / f'{assessment_type.lower()}_data.csv'
+    data_path = project_root / 'data' / 'processed' / f'{assessment_type.lower()}_processed.csv'
     df = processor.load_data(str(data_path), assessment_type)
     
     # Calculate total score from individual question responses

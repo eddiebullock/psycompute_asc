@@ -99,7 +99,7 @@ def main():
     
     # Process each assessment type
     for assessment_type in ['AQ', 'SQ', 'EQ']:
-        run_pipeline(assessment_type, use_test_data=True)  # Set to False to use real data
+        run_pipeline(assessment_type, use_test_data=False)  # Set to False to use real data
 
 if __name__ == "__main__":
     main() 

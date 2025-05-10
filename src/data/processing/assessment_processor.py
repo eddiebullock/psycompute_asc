@@ -43,31 +43,27 @@ class AssessmentProcessor:
     
     def _validate_columns(self, df: pd.DataFrame, assessment_type: str) -> None:
         """
-        Validate that the DataFrame contains all required columns.
-        
+        Validate that the DataFrame contains at least one required column.
         Args:
             df: DataFrame to validate
             assessment_type: Type of assessment
         """
         required = self.required_columns[assessment_type]
-        missing = [col for col in required if col not in df.columns]
-        if missing:
-            raise ValueError(f"Missing required columns for {assessment_type}: {missing}")
+        present = [col for col in required if col in df.columns]
+        if not present:
+            raise ValueError(f"No required columns for {assessment_type} found in data.")
     
     def validate_responses(self, df: pd.DataFrame, assessment_type: str) -> pd.DataFrame:
         """
         Validate and clean response data.
-        
         Args:
             df: DataFrame containing responses
             assessment_type: Type of assessment
-            
         Returns:
             DataFrame with validated responses
         """
         # Copy to avoid modifying original
         df_valid = df.copy()
-        
         # Validate response values (assuming 1-4 scale)
         for col in self.required_columns[assessment_type]:
             if col in df_valid.columns:
@@ -76,37 +72,25 @@ class AssessmentProcessor:
                 df_valid[col] = df_valid[col].apply(
                     lambda x: x if pd.isna(x) or (1 <= x <= 4) else np.nan
                 )
-        
         return df_valid
     
     def calculate_scores(self, df: pd.DataFrame, assessment_type: str) -> pd.DataFrame:
         """
         Calculate total scores and subscale scores for the assessment.
-        
         Args:
             df: DataFrame containing validated responses
             assessment_type: Type of assessment
-            
         Returns:
             DataFrame with added score columns
         """
         df_scored = df.copy()
-        
+        available_cols = [col for col in self.required_columns[assessment_type] if col in df_scored.columns]
         if assessment_type == 'AQ':
-            # AQ scoring logic
-            df_scored['AQ_Total'] = df_scored[self.required_columns['AQ']].sum(axis=1)
-            # Add subscale calculations here
-            
+            df_scored['AQ_Total'] = df_scored[available_cols].sum(axis=1)
         elif assessment_type == 'SQ':
-            # SQ scoring logic
-            df_scored['SQ_Total'] = df_scored[self.required_columns['SQ']].sum(axis=1)
-            # Add subscale calculations here
-            
+            df_scored['SQ_Total'] = df_scored[available_cols].sum(axis=1)
         elif assessment_type == 'EQ':
-            # EQ scoring logic
-            df_scored['EQ_Total'] = df_scored[self.required_columns['EQ']].sum(axis=1)
-            # Add subscale calculations here
-        
+            df_scored['EQ_Total'] = df_scored[available_cols].sum(axis=1)
         return df_scored
     
     def generate_statistics(self, df: pd.DataFrame, assessment_type: str) -> Dict:

@@ -44,19 +44,22 @@ class DataPreparator:
         if column_mapping:
             df_prepared = df_prepared.rename(columns=column_mapping)
         
-        # Ensure all expected columns exist
-        missing_cols = [col for col in self.expected_columns[assessment_type] 
-                       if col not in df_prepared.columns]
-        if missing_cols:
-            raise ValueError(f"Missing required columns: {missing_cols}")
+        # Only require columns that are present in the input (variable-length forms)
+        present_cols = [col for col in self.expected_columns[assessment_type] if col in df_prepared.columns]
+        missing_cols = [col for col in self.expected_columns[assessment_type] if col not in df_prepared.columns]
+        # Pad missing columns with NaN
+        for col in missing_cols:
+            df_prepared[col] = np.nan
+        # Reorder columns to match expected order
+        df_prepared = df_prepared[[col for col in self.expected_columns[assessment_type]] + [c for c in df_prepared.columns if c not in self.expected_columns[assessment_type]]]
         
         # Convert response values if mapping provided
         if response_mapping:
-            for col in self.expected_columns[assessment_type]:
+            for col in present_cols:
                 df_prepared[col] = df_prepared[col].map(response_mapping)
         
         # Ensure all responses are numeric and in 1-4 range
-        for col in self.expected_columns[assessment_type]:
+        for col in present_cols:
             df_prepared[col] = pd.to_numeric(df_prepared[col], errors='coerce')
             df_prepared[col] = df_prepared[col].apply(
                 lambda x: x if pd.isna(x) or (1 <= x <= 4) else np.nan
