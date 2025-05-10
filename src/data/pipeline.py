@@ -39,7 +39,7 @@ def run_pipeline(assessment_type: str, use_test_data: bool = False):
         print(f"Saved test data to {data_path}")
     else:
         print("Loading raw data...")
-        data_path = project_root / 'data' / 'raw' / f'{assessment_type.lower()}_data.csv'
+        data_path = project_root / 'data' / 'raw' / f'{assessment_type.lower()}_data_processed.csv'
         if not data_path.exists():
             raise FileNotFoundError(f"Raw data file not found: {data_path}")
     
