@@ -1,7 +1,7 @@
 """
 Main pipeline for autism screening assessment data processing.
 Follows the workflow:
-1. Data generation/loading
+1. Data loading
 2. Data processing
 3. Data validation and quality control
 4. Analysis and visualization
@@ -14,34 +14,25 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.append(str(project_root))
 
-from src.data.generation.data_generator import generate_test_data
 from src.data.processing.assessment_processor import AssessmentProcessor
 from src.data.validation.data_validator import DataValidator
 from src.data.analysis.statistical_analyzer import AssessmentAnalyzer
 
-def run_pipeline(assessment_type: str, use_test_data: bool = False):
+def run_pipeline(assessment_type: str):
     """
     Run the complete data pipeline for a specific assessment type.
     
     Args:
         assessment_type: Type of assessment ('AQ', 'SQ', or 'EQ')
-        use_test_data: Whether to generate and use test data
     """
     print(f"\nRunning pipeline for {assessment_type}...")
     
-    # Step 1: Data Generation/Loading
-    print("\n1. Data Generation/Loading...")
-    if use_test_data:
-        print("Generating test data...")
-        df = generate_test_data(n_samples=1000, assessment_type=assessment_type)
-        data_path = project_root / 'data' / 'processed' / f'{assessment_type.lower()}_data.csv'
-        df.to_csv(data_path, index=False)
-        print(f"Saved test data to {data_path}")
-    else:
-        print("Loading raw data...")
-        data_path = project_root / 'data' / 'raw' / f'{assessment_type.lower()}_data_processed.csv'
-        if not data_path.exists():
-            raise FileNotFoundError(f"Raw data file not found: {data_path}")
+    # Step 1: Data Loading
+    print("\n1. Data Loading...")
+    data_path = project_root / 'data' / 'raw' / f'{assessment_type.lower()}_data_processed.csv'
+    if not data_path.exists():
+        raise FileNotFoundError(f"Raw data file not found: {data_path}")
+    print(f"Loading data from {data_path}")
     
     # Step 2: Data Processing
     print("\n2. Data Processing...")
@@ -99,7 +90,7 @@ def main():
     
     # Process each assessment type
     for assessment_type in ['AQ', 'SQ', 'EQ']:
-        run_pipeline(assessment_type, use_test_data=False)  # Set to False to use real data
+        run_pipeline(assessment_type)
 
 if __name__ == "__main__":
     main() 

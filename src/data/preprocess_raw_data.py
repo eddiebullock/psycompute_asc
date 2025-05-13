@@ -27,37 +27,58 @@ def generate_column_mapping(df: pd.DataFrame, prefix: str) -> dict:
         Dictionary mapping original column names to expected names
     """
     print(f"generate_column_mapping called with prefix: {prefix}")
+    
+    # Handle test data format (AQ_1, AQ_2, etc.)
+    test_cols = [col for col in df.columns if col.startswith(f'{prefix}Q_')]
+    if test_cols:
+        return {col: col for col in test_cols}  # Keep original names for test data
+    
+    # Handle original formats
     if prefix == 'A':
-        # Accept either A1_Score...A10_Score or A1...A10
-        aq_score_cols = [f'A{i}_Score' for i in range(1, 11)]
-        aq_simple_cols = [f'A{i}' for i in range(1, 11)]
-        if all(col in df.columns for col in aq_score_cols):
-            return dict(zip(aq_score_cols, [f'AQ_{i}' for i in range(1, 11)]))
-        elif all(col in df.columns for col in aq_simple_cols):
-            return dict(zip(aq_simple_cols, [f'AQ_{i}' for i in range(1, 11)]))
-        # If only a subset is present, map whatever is available
-        available_score_cols = [col for col in aq_score_cols if col in df.columns]
-        available_simple_cols = [col for col in aq_simple_cols if col in df.columns]
-        mapping = {}
-        for idx, col in enumerate(available_score_cols):
-            mapping[col] = f"AQ_{idx+1}"
-        for idx, col in enumerate(available_simple_cols):
-            mapping[col] = f"AQ_{idx+1}"
-        if mapping:
-            return mapping
-    # For EQ and SQ datasets, ensure correct mapping
-    if prefix == 'E':
-        original_cols = [col for col in df.columns if col.startswith('E')]
-        expected_cols = [f'EQ_{i+1}' for i in range(len(original_cols))]
-        return dict(zip(original_cols, expected_cols))
+        # Accept various AQ formats
+        aq_formats = [
+            [f'A{i}_Score' for i in range(1, 51)],  # A1_Score...A50_Score
+            [f'A{i}' for i in range(1, 51)],        # A1...A50
+            [f'AQ_{i}' for i in range(1, 51)],      # AQ_1...AQ_50
+            [f'Q{i}' for i in range(1, 51)]         # Q1...Q50
+        ]
+        for format_cols in aq_formats:
+            if all(col in df.columns for col in format_cols):
+                return dict(zip(format_cols, [f'AQ_{i}' for i in range(1, 51)]))
+    
+    elif prefix == 'E':
+        # Accept various EQ formats
+        eq_formats = [
+            [f'E{i}_Score' for i in range(1, 61)],  # E1_Score...E60_Score
+            [f'E{i}' for i in range(1, 61)],        # E1...E60
+            [f'EQ_{i}' for i in range(1, 61)],      # EQ_1...EQ_60
+            [f'Q{i}' for i in range(1, 61)]         # Q1...Q60
+        ]
+        for format_cols in eq_formats:
+            if all(col in df.columns for col in format_cols):
+                return dict(zip(format_cols, [f'EQ_{i}' for i in range(1, 61)]))
+    
     elif prefix == 'S':
-        original_cols = [col for col in df.columns if col.startswith('S')]
-        expected_cols = [f'SQ_{i+1}' for i in range(len(original_cols))]
-        return dict(zip(original_cols, expected_cols))
-    # For other datasets, use the standard mapping
+        # Accept various SQ formats
+        sq_formats = [
+            [f'S{i}_Score' for i in range(1, 41)],  # S1_Score...S40_Score
+            [f'S{i}' for i in range(1, 41)],        # S1...S40
+            [f'SQ_{i}' for i in range(1, 41)],      # SQ_1...SQ_40
+            [f'Q{i}' for i in range(1, 41)]         # Q1...Q40
+        ]
+        for format_cols in sq_formats:
+            if all(col in df.columns for col in format_cols):
+                return dict(zip(format_cols, [f'SQ_{i}' for i in range(1, 41)]))
+    
+    # If no exact match found, try partial matching
     original_cols = [col for col in df.columns if col.startswith(prefix)]
-    expected_cols = [f'{prefix}Q_{i+1}' for i in range(len(original_cols))]
-    return dict(zip(original_cols, expected_cols))
+    if original_cols:
+        # Sort columns to ensure consistent mapping
+        original_cols.sort()
+        expected_cols = [f'{prefix}Q_{i+1}' for i in range(len(original_cols))]
+        return dict(zip(original_cols, expected_cols))
+    
+    return {}
 
 def generate_response_mapping(df: pd.DataFrame, columns: list) -> dict:
     """
@@ -70,15 +91,31 @@ def generate_response_mapping(df: pd.DataFrame, columns: list) -> dict:
     Returns:
         Dictionary mapping original response values to 1-4 scale
     """
-    # For binary responses (0/1), map to 1-2 scale
+    # For test data (already in 0-4 scale), return identity mapping
     values = df[columns].values.flatten()
     unique_values = np.unique(values[~pd.isna(values)])  # Remove NaN values
+    
+    # Common response scales
+    if set(unique_values).issubset({0, 1, 2, 3, 4}):
+        return {i: i for i in range(5)}  # Identity mapping for 0-4 scale
+    
+    if set(unique_values).issubset({1, 2, 3, 4}):
+        return {i: i for i in range(1, 5)}  # Identity mapping for 1-4 scale
     
     if set(unique_values).issubset({0, 1}):
         return {0: 1, 1: 2}  # Map 0->1 (disagree) and 1->2 (agree)
     
+    if set(unique_values).issubset({1, 2}):
+        return {1: 1, 2: 2}  # Map 1->1 (disagree) and 2->2 (agree)
+    
+    if set(unique_values).issubset({1, 2, 3, 4, 5}):
+        return {i: i for i in range(1, 6)}  # Identity mapping for 1-5 scale
+    
+    if set(unique_values).issubset({0, 1, 2, 3, 4, 5}):
+        return {i: i for i in range(6)}  # Identity mapping for 0-5 scale
+    
     # For other scales, map to 1-4
-    return {val: i+1 for i, val in enumerate(unique_values)}
+    return {val: i+1 for i, val in enumerate(sorted(unique_values))}
 
 def preprocess_raw_data(raw_file_path: str, assessment_type: str, output_dir: str = 'data/raw'):
     """
@@ -92,25 +129,37 @@ def preprocess_raw_data(raw_file_path: str, assessment_type: str, output_dir: st
     try:
         # Use pandas' delimiter auto-detection
         df = pd.read_csv(raw_file_path, sep=None, engine='python', encoding='utf-8')
-        # Debug print: show actual column names
         print(f"Actual columns in {raw_file_path}: {df.columns.tolist()}")
+        
         # Determine prefix based on assessment type
         prefix = assessment_type[0]  # 'A' for AQ, 'E' for EQ, 'S' for SQ
+        
         # Generate column mapping
         column_mapping = generate_column_mapping(df, prefix)
+        if not column_mapping:
+            raise ValueError(f"No valid column mapping found for {assessment_type}")
+        
         # Generate response mapping
         response_mapping = generate_response_mapping(df, list(column_mapping.keys()))
+        
         # Prepare data using DataPreparator
         preparator = DataPreparator()
         df_prepared = preparator.prepare_data(df, assessment_type, column_mapping, response_mapping)
+        
+        # Handle missing values
+        df_prepared = df_prepared.fillna(method='ffill').fillna(method='bfill')
+        
         # Generate output filename based on input filename
         input_filename = os.path.basename(raw_file_path)
         output_filename = f"{assessment_type.lower()}_{os.path.splitext(input_filename)[0]}_processed"
+        
         # Save prepared data
         preparator.save_prepared_data(df_prepared, assessment_type, output_dir, output_filename)
         print(f"Successfully processed {raw_file_path}")
+        
     except Exception as e:
         print(f"Error processing {raw_file_path}: {str(e)}")
+        raise
 
 def process_directory(directory_path: str, assessment_type: str, output_dir: str = 'data/raw'):
     """
@@ -168,14 +217,15 @@ def merge_processed_files(output_dir: str, assessment_type: str):
     print(f"Merged {len(processed_files)} files into {merged_file_path}")
 
 if __name__ == "__main__":
-    # Process all AQ files in the directory
-    aq_dir_path = '/Users/eb2007/bulldev/data/raw/Data-downloads/kaggle/AQ'
-    process_directory(aq_dir_path, 'AQ')
+    # Process test data files
+    test_data_dirs = {
+        'AQ': '/Users/eb2007/bulldev/data/raw/Data-downloads/kaggle/AQ',
+        'EQ': '/Users/eb2007/bulldev/data/raw/Data-downloads/kaggle/EQ',
+        'SQ': '/Users/eb2007/bulldev/data/raw/Data-downloads/kaggle/SQ'
+    }
     
-    # Process EQ_SQ data
-    eq_sq_file_path = '/Users/eb2007/bulldev/data/raw/Data-downloads/kaggle/EQ_SQ/data.csv'
-    preprocess_raw_data(eq_sq_file_path, 'EQ')
-    preprocess_raw_data(eq_sq_file_path, 'SQ')
-
-    # Merge processed files for AQ
-    merge_processed_files('data/raw', 'AQ') 
+    # Process each assessment type
+    for assessment_type, directory in test_data_dirs.items():
+        print(f"\nProcessing {assessment_type} test data...")
+        process_directory(directory, assessment_type)
+        merge_processed_files('data/raw', assessment_type) 
