@@ -58,8 +58,8 @@ class DataPreparator:
             raise ValueError(f"None of the expected columns for {assessment_type} are present in the data.")
         if missing_cols:
             warnings.warn(f"Missing expected columns for {assessment_type}: {missing_cols}. Filling with NaN.")
-            for col in missing_cols:
-                df_prepared[col] = np.nan
+        for col in missing_cols:
+            df_prepared[col] = np.nan
         
         # Get all columns that are not in expected_cols
         other_cols = [c for c in df_prepared.columns if c not in expected_cols]

@@ -18,8 +18,45 @@ sys.path.append(str(project_root))
 from src.data.processing.assessment_processor import AssessmentProcessor
 from src.data.validation.data_validator import DataValidator
 from src.data.analysis.statistical_analyzer import AssessmentAnalyzer
-from src.models.baseline_models import train_baseline_models
+from src.models.logistic_regression import AdvancedLogisticRegression
+from src.models.svm import AdvancedSVM
 from src.visualization.model_dashboard import ModelDashboard
+
+def train_models(df, assessment_type: str, output_dir: str):
+    """
+    Train and save advanced models for a given assessment type.
+    
+    Args:
+        df: DataFrame containing the assessment data
+        assessment_type: Type of assessment ('AQ', 'SQ', or 'EQ')
+        output_dir: Directory to save the trained models
+    """
+    # Initialize models
+    models = {
+        'logistic_regression': AdvancedLogisticRegression(assessment_type),
+        'svm': AdvancedSVM(assessment_type)
+    }
+    
+    # Prepare data
+    X, y = models['logistic_regression'].prepare_data(df)
+    
+    # Train and save each model
+    results = {}
+    for name, model in models.items():
+        print(f"\nTraining {name}...")
+        metrics = model.train(X, y)
+        model.save_model(output_dir)
+        results[name] = metrics
+        
+        # Print metrics
+        print(f"\nMetrics for {name}:")
+        for metric, value in metrics.items():
+            if isinstance(value, (float, int)) and metric not in ['confusion_matrix', 'roc_curve', 'class_distribution']:
+                print(f"{metric}: {value:.3f}")
+            else:
+                print(f"{metric}: {value}")
+    
+    return results
 
 def run_pipeline(assessment_type: str):
     """
@@ -88,11 +125,11 @@ def run_pipeline(assessment_type: str):
     # Step 5: Model Training and Evaluation
     print("\n5. Model Training and Evaluation...")
     
-    # Train baseline models
-    models_dir = project_root / 'models' / 'baseline' / assessment_type.lower()
+    # Train models
+    models_dir = project_root / 'models' / assessment_type.lower()
     models_dir.mkdir(parents=True, exist_ok=True)
     
-    results = train_baseline_models(df_scored, assessment_type, str(models_dir))
+    results = train_models(df_scored, assessment_type, str(models_dir))
     
     # Create model evaluation dashboard
     dashboard = ModelDashboard(str(models_dir))
@@ -103,7 +140,7 @@ def run_pipeline(assessment_type: str):
 def main():
     """Run the pipeline for all assessment types."""
     # Create necessary directories
-    for dir_name in ['raw', 'processed', 'models/baseline', 'reports/model_evaluation']:
+    for dir_name in ['raw', 'processed', 'models', 'reports/model_evaluation']:
         (project_root / 'data' / dir_name).mkdir(parents=True, exist_ok=True)
     
     # Process each assessment type
