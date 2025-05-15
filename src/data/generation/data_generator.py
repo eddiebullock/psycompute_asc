@@ -163,7 +163,7 @@ def generate_realistic_data(n_samples: int = 1000, assessment_type: str = 'AQ') 
     df['version'] = '1.0'
     df['language'] = np.random.choice(['English', 'Spanish', 'French'], size=n_samples, p=[0.85, 0.1, 0.05])
     
-    return df
+    return df 
 
 def save_test_data(df: pd.DataFrame, assessment_type: str):
     """

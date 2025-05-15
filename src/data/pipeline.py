@@ -20,6 +20,7 @@ from src.data.validation.data_validator import DataValidator
 from src.data.analysis.statistical_analyzer import AssessmentAnalyzer
 from src.models.logistic_regression import AdvancedLogisticRegression
 from src.models.svm import AdvancedSVM
+from src.models.tree_models import AdvancedDecisionTree, AdvancedRandomForest, AdvancedGradientBoosting
 from src.visualization.model_dashboard import ModelDashboard
 
 def train_models(df, assessment_type: str, output_dir: str):
@@ -34,7 +35,10 @@ def train_models(df, assessment_type: str, output_dir: str):
     # Initialize models
     models = {
         'logistic_regression': AdvancedLogisticRegression(assessment_type),
-        'svm': AdvancedSVM(assessment_type)
+        'svm': AdvancedSVM(assessment_type),
+        'decision_tree': AdvancedDecisionTree(assessment_type),
+        'random_forest': AdvancedRandomForest(assessment_type),
+        'gradient_boosting': AdvancedGradientBoosting(assessment_type)
     }
     
     # Prepare data

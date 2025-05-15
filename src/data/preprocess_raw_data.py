@@ -75,8 +75,8 @@ def generate_column_mapping(df: pd.DataFrame, prefix: str) -> dict:
     if original_cols:
         # Sort columns to ensure consistent mapping
         original_cols.sort()
-        expected_cols = [f'{prefix}Q_{i+1}' for i in range(len(original_cols))]
-        return dict(zip(original_cols, expected_cols))
+    expected_cols = [f'{prefix}Q_{i+1}' for i in range(len(original_cols))]
+    return dict(zip(original_cols, expected_cols))
     
     return {}
 
