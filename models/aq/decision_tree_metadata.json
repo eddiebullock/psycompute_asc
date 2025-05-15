@@ -1,0 +1,63 @@
+{
+    "metrics": {
+        "accuracy": 0.9680085310583845,
+        "precision": 0.10606060606060606,
+        "recall": 0.875,
+        "f1": 0.1891891891891892,
+        "auc_roc": 0.986178045515395,
+        "confusion_matrix": [
+            [
+                3617,
+                118
+            ],
+            [
+                2,
+                14
+            ]
+        ],
+        "specificity": 0.9684069611780455,
+        "roc_curve": {
+            "fpr": [
+                0.0,
+                0.0,
+                0.003748326639892905,
+                0.03159303882195449,
+                0.08995983935742972,
+                1.0
+            ],
+            "tpr": [
+                0.0,
+                0.1875,
+                0.5625,
+                0.875,
+                1.0,
+                1.0
+            ]
+        },
+        "class_distribution": {
+            "train": {
+                "class_0": 0,
+                "class_1": 0
+            },
+            "test": {
+                "class_0": 3735,
+                "class_1": 16
+            }
+        }
+    },
+    "best_params": {
+        "classifier__class_weight": {
+            "0": 1,
+            "1": 10
+        },
+        "classifier__max_depth": 5,
+        "classifier__min_samples_leaf": 1,
+        "classifier__min_samples_split": 2
+    },
+    "feature_importance": [
+        0.0,
+        0.09126643380372568,
+        0.0,
+        0.9087335661962743
+    ]
+}
