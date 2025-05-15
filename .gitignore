@@ -46,7 +46,7 @@ data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
-models/baseline/
+models/
 reports/model_evaluation/
 
 # Logs and Test Coverage
