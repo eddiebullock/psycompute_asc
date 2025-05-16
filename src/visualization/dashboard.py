@@ -1,5 +1,5 @@
 """
-Interactive dashboard for exploratory data analysis of autism assessment data.
+Unified dashboard for both exploratory data analysis and model evaluation.
 """
 
 import streamlit as st
@@ -8,13 +8,18 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 import sys
+import json
+import os
 
 # Add the project root to the Python path
-project_root = Path(__file__).parent.parent.parent
-sys.path.append(str(project_root))
+current_file = Path(__file__).resolve()
+project_root = current_file.parent.parent.parent
+sys.path.insert(0, str(project_root))
 
+# Now we can import from src
 from src.data.processing.assessment_processor import AssessmentProcessor
 from src.data.analysis.statistical_analyzer import AssessmentAnalyzer
+from src.visualization.model_dashboard import ModelDashboard
 
 def load_data(assessment_type: str) -> pd.DataFrame:
     """Load processed assessment data and calculate total score."""
@@ -64,6 +69,69 @@ def create_subscale_plot(df: pd.DataFrame, assessment_type: str) -> go.Figure:
     )
     return fig
 
+def display_eda_tab(df: pd.DataFrame, assessment_type: str):
+    """Display the Exploratory Data Analysis tab content."""
+    st.header("Basic Statistics")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("Mean Score", f"{df['total_score'].mean():.2f}")
+    with col2:
+        st.metric("Median Score", f"{df['total_score'].median():.2f}")
+    with col3:
+        st.metric("Standard Deviation", f"{df['total_score'].std():.2f}")
+    
+    st.header("Score Distribution")
+    fig_dist = create_distribution_plot(df, assessment_type)
+    st.plotly_chart(fig_dist, use_container_width=True)
+    
+    st.header("Subscale Analysis")
+    fig_subscale = create_subscale_plot(df, assessment_type)
+    if fig_subscale:
+        st.plotly_chart(fig_subscale, use_container_width=True)
+    else:
+        st.info("No subscale data available for this assessment type")
+    
+    st.header("Data Preview")
+    st.dataframe(df.head())
+    
+    st.download_button(
+        label="Download Processed Data",
+        data=df.to_csv(index=False).encode('utf-8'),
+        file_name=f"{assessment_type.lower()}_processed_data.csv",
+        mime='text/csv'
+    )
+
+def display_model_evaluation_tab(assessment_type: str):
+    """Display the Model Evaluation tab content."""
+    models_dir = project_root / 'models' / assessment_type.lower()
+    if not models_dir.exists():
+        st.warning("No model evaluation data available. Please run the model training pipeline first.")
+        return
+    
+    dashboard = ModelDashboard(str(models_dir))
+    
+    st.header("Model Performance Metrics")
+    metrics_fig = dashboard.create_metrics_comparison()
+    st.plotly_chart(metrics_fig, use_container_width=True)
+    
+    st.header("ROC Curves")
+    roc_fig = dashboard.create_roc_curves()
+    st.plotly_chart(roc_fig, use_container_width=True)
+    
+    st.header("Confusion Matrices")
+    cm_fig = dashboard.create_confusion_matrices()
+    st.plotly_chart(cm_fig, use_container_width=True)
+    
+    # Display model parameters
+    st.header("Model Parameters")
+    for model_file in models_dir.glob('*_metadata.json'):
+        model_name = model_file.stem.replace('_metadata', '')
+        with open(model_file, 'r') as f:
+            metadata = json.load(f)
+            st.subheader(model_name)
+            st.json(metadata.get('best_params', {}))
+
 def main():
     st.set_page_config(
         page_title="Autism Assessment Analysis Dashboard",
@@ -72,7 +140,7 @@ def main():
     )
     
     st.title("Autism Assessment Analysis Dashboard")
-    st.write("Interactive exploratory data analysis of AQ, SQ, and EQ assessment data")
+    st.write("Interactive analysis of assessment data and model performance")
     
     # Assessment type selector
     assessment_type = st.sidebar.selectbox(
@@ -80,46 +148,18 @@ def main():
         ["AQ", "SQ", "EQ"]
     )
     
-    # Load data
+    # Create tabs
+    tab1, tab2 = st.tabs(["Exploratory Data Analysis", "Model Evaluation"])
+    
     try:
         df = load_data(assessment_type)
         
-        # Display basic statistics
-        st.header("Basic Statistics")
-        col1, col2, col3 = st.columns(3)
+        with tab1:
+            display_eda_tab(df, assessment_type)
         
-        with col1:
-            st.metric("Mean Score", f"{df['total_score'].mean():.2f}")
-        with col2:
-            st.metric("Median Score", f"{df['total_score'].median():.2f}")
-        with col3:
-            st.metric("Standard Deviation", f"{df['total_score'].std():.2f}")
-        
-        # Distribution plot
-        st.header("Score Distribution")
-        fig_dist = create_distribution_plot(df, assessment_type)
-        st.plotly_chart(fig_dist, use_container_width=True)
-        
-        # Subscale analysis
-        st.header("Subscale Analysis")
-        fig_subscale = create_subscale_plot(df, assessment_type)
-        if fig_subscale:
-            st.plotly_chart(fig_subscale, use_container_width=True)
-        else:
-            st.info("No subscale data available for this assessment type")
-        
-        # Raw data preview
-        st.header("Data Preview")
-        st.dataframe(df.head())
-        
-        # Download button for processed data
-        st.download_button(
-            label="Download Processed Data",
-            data=df.to_csv(index=False).encode('utf-8'),
-            file_name=f"{assessment_type.lower()}_processed_data.csv",
-            mime='text/csv'
-        )
-        
+        with tab2:
+            display_model_evaluation_tab(assessment_type)
+            
     except Exception as e:
         st.error(f"Error loading data: {str(e)}")
         st.info("Please ensure the processed data files exist in the data/processed directory")

@@ -1,5 +1,5 @@
 """
-Runner script for the unified dashboard.
+Runner script for the dashboard.
 """
 
 import os
@@ -12,4 +12,4 @@ sys.path.insert(0, str(project_root))
 
 # Run the Streamlit app
 if __name__ == "__main__":
-    os.system(f"streamlit run {project_root}/src/visualization/unified_dashboard.py") 
+    os.system(f"streamlit run {project_root}/src/visualization/dashboard.py") 
